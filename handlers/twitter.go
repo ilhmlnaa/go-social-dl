@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"archive/zip"
-	"bytes"
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -37,20 +35,19 @@ func TwitterDownloadHandler(scraper *twitterscraper.Scraper) http.HandlerFunc {
 			return
 		}
 
-		if len(tweet.Photos) == 1 {
-			imgURL := strings.Replace(tweet.Photos[0].URL, "&name=small", "&name=large", 1)
-			err = streamImage(w, imgURL)
-			if err != nil {
-				http.Error(w, "Gagal mengirim gambar: "+err.Error(), http.StatusInternalServerError)
-			}
-			return
+		var urls []string
+		for _, photo := range tweet.Photos {
+			imgURL := strings.Replace(photo.URL, "&name=small", "&name=large", 1)
+			urls = append(urls, imgURL)
 		}
 
-		err = streamZipImages(w, tweetID, tweet.Photos)
-		if err != nil {
-			http.Error(w, "Gagal mengirim zip gambar: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "success",
+			"urls":   urls,
+		})
 	}
 }
 
@@ -61,54 +58,4 @@ func extractTweetID(url string) (string, error) {
 		return "", fmt.Errorf("tidak ditemukan tweet id")
 	}
 	return matches[1], nil
-}
-
-func streamImage(w http.ResponseWriter, url string) error {
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
-	w.Header().Set("Content-Disposition", "inline")
-
-	_, err = io.Copy(w, resp.Body)
-	return err
-}
-
-func streamZipImages(w http.ResponseWriter, tweetID string, photos []twitterscraper.Photo) error {
-	buf := new(bytes.Buffer)
-	zipWriter := zip.NewWriter(buf)
-
-	for i, photo := range photos {
-		imgURL := strings.Replace(photo.URL, "&name=small", "&name=large", 1)
-
-		resp, err := http.Get(imgURL)
-		if err != nil {
-			zipWriter.Close()
-			return err
-		}
-
-		f, err := zipWriter.Create(fmt.Sprintf("tweet_%s_img_%d.jpg", tweetID, i+1))
-		if err != nil {
-			resp.Body.Close()
-			zipWriter.Close()
-			return err
-		}
-
-		_, err = io.Copy(f, resp.Body)
-		resp.Body.Close()
-		if err != nil {
-			zipWriter.Close()
-			return err
-		}
-	}
-
-	zipWriter.Close()
-
-	w.Header().Set("Content-Type", "application/zip")
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"tweet_%s_images.zip\"", tweetID))
-	w.Write(buf.Bytes())
-	return nil
 }
