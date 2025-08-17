@@ -92,10 +92,8 @@ If you prefer to get the direct media URL, the API will return a JSON response:
 
 ## Roadmap
 
+- [✅ ] Instagram media downloader support
 - [ ] Instagram media downloader support
-- [ ] Improved error handling and logging
-- [ ] Optimized Dockerfile (multi-stage build, smaller image)
-- [ ] Simple UI to paste and download links
 
 ## License
 
