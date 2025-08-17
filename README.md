@@ -92,7 +92,7 @@ If you prefer to get the direct media URL, the API will return a JSON response:
 
 ## Roadmap
 
-- [✅] Instagram media downloader support
+- [x] Instagram media downloader support
 - [ ] Instagram media downloader support
 
 ## License
