@@ -1,4 +1,6 @@
 .env
+/dev
 dev
-./dev/*
+./dev
 sumber.txt
+./sumber.txt
