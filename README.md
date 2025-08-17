@@ -78,7 +78,7 @@ This endpoint allows you to download media from a Twitter link.
 ### Example usage with curl:
 
 ```bash
-curl "http://localhost:3000/dl?url=https://twitter.com/username/status/1234567890" --output media.mp4
+curl "http://localhost:3000/dl?url=https://twitter.com/username/status/1234567890"
 ```
 
 If you prefer to get the direct media URL, the API will return a JSON response:
@@ -86,7 +86,7 @@ If you prefer to get the direct media URL, the API will return a JSON response:
 ```json
 {
   "status": "success",
-  "url": "https://video.twimg.com/ext_tw_video/1234567890/pu/vid/720x1280/video.mp4"
+  "urls": ["https://pbs.twimg.com/media/Gr35T-DWMAAuVfL.jpg"]
 }
 ```
 
